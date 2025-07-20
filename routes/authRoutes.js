@@ -3,6 +3,7 @@ const { body } = require('express-validator');
 const { 
   handleRegisterUser, 
   handleLoginUser, 
+  handleLogoutUser,
   handleUpdateUserProfile, 
   handleDeleteUser, 
   getProtectedUser
@@ -37,11 +38,8 @@ router.post('/login',
   handleLoginUser
 );
 
-
-// POST /api/logout
-router.post('/logout', (req, res) => {
-    res.status(200).json({ msg: 'Logout successful.' });
-});
+// DELETE /api/logout
+router.delete('/logout', handleLogoutUser);
 // DELETE /api/users/:id
 router.delete('/users/:id', verifyToken, handleDeleteUser);
 

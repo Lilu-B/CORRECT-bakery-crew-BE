@@ -73,6 +73,11 @@ NODE_ENV=development nodemon server.js
 npm run dev:test
 # or:
 NODE_ENV=test nodemon server.js
+
+# Run Tests - Jest
+npm run test
+# or:
+NODE_ENV=test jest --runInBand --detectOpenHandles
 ```
 
 ---

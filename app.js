@@ -13,7 +13,8 @@ const app = express();
 
 app.use(cookieParser());
 app.use(cors({
-  origin: 'https://bakery-crew-fe.vercel.app',
+  // origin: 'https://bakery-crew-fe.vercel.app',   // for production
+  origin: 'http://localhost:5173',   // for local development
   credentials: true
 }));
 app.use(express.json());

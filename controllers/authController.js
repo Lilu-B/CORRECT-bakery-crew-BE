@@ -104,20 +104,37 @@ const handleLoginUser = async (req, res) => {
         { expiresIn: '30d' }
       );
   
-      res
-          .cookie('token', token, {
+      res.cookie('token', token, {
             httpOnly: true,
-            secure: true, 
-            sameSite: 'none', 
+            // secure: true,   // for production = true
+            // sameSite: 'none',   // for production = 'none'
+            secure: false,      // for local = false
+            sameSite: 'none',   // for local = 'lax'
             maxAge: 30 * 24 * 60 * 60 * 1000, 
-          })
-          .json({ msg: 'Login successful.' });
+          });
+            if (process.env.NODE_ENV !== 'production') {
+              res.json({ msg: 'Login successful', token });
+            } else {
+              res.json({ msg: 'Login successful' });
+            }
   
     } catch (error) {
       console.error('Login error:', error);
       res.status(500).json({ msg: 'Internal server error' });
     }
-  };
+};
+
+
+// logOut
+// by clearing the authentication cookie.
+const handleLogoutUser = async (req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    sameSite: 'none',
+    secure: process.env.NODE_ENV !== 'development'
+  });
+  res.status(200).json({ msg: 'Logout successful' });
+};
 
 const handleUpdateUserProfile = async (req, res) => {
   try {
@@ -202,7 +219,7 @@ const getProtectedUser = async (req, res) => {
       id: user.id,
       name: user.name,
       email: user.email,
-      phone: user.phone, // ✅ теперь вернётся!
+      phone: user.phone, 
       role: user.role,
       shift: user.shift,
       isApproved: user.is_approved,
@@ -217,6 +234,7 @@ const getProtectedUser = async (req, res) => {
 module.exports = { 
   handleRegisterUser, 
   handleLoginUser, 
+  handleLogoutUser,
   handleUpdateUserProfile,
   handleDeleteUser, 
   getProtectedUser 

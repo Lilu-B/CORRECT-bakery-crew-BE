@@ -121,9 +121,13 @@ describe('POST /api/login', () => {
       });
 
     expect(res.statusCode).toBe(200);
-    expect(res.body.msg).toBe('Login successful.');
-    expect(res.body).toHaveProperty('token');
-    expect(typeof res.body.token).toBe('string');
+    expect(res.body.msg).toBe('Login successful');
+
+    const cookies = res.headers['set-cookie'];
+    expect(cookies).toBeDefined();
+
+    const tokenCookie = cookies.find((c) => c.startsWith('token='));
+    expect(tokenCookie).toBeDefined();
   });
 
   test('401: returns error for unapproved user', async () => {
@@ -185,10 +189,25 @@ describe('GET /api/protected', () => {
       .post('/api/login')
       .send({ email: 'auth@example.com', password: 'testpass' });
 
-    validToken = res.body.token;
+    const setCookieHeader = res.headers['set-cookie'];
+    const tokenCookie = setCookieHeader.find((cookie) => cookie.startsWith('token='));
+    const tokenValue = tokenCookie.split(';')[0].split('=')[1];
+
+    validToken = tokenValue;
   });
 
-  test('200: returns user info with valid token', async () => {
+    test('✅ 200: returns user info with valid token in Cookie', async () => {
+    const res = await request(app)
+      .get('/api/protected')
+      .set('Cookie', [`token=${validToken}`]);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty('role');
+    expect(res.body).toHaveProperty('email');
+    expect(res.body.isApproved).toBe(true);
+  });
+
+  test('✅ 200: returns user info with valid token in Authorization header', async () => {
     const res = await request(app)
       .get('/api/protected')
       .set('Authorization', `Bearer ${validToken}`);
@@ -199,31 +218,40 @@ describe('GET /api/protected', () => {
     expect(res.body.isApproved).toBe(true);
   });
 
-  test('401: returns error if no Authorization header is present', async () => {
+  test('❌ 401: returns error if no token is provided', async () => {
     const res = await request(app).get('/api/protected');
     expect(res.statusCode).toBe(401);
     expect(res.body.msg).toBe('Access denied. No token provided.');
   });
 
-  test('403: returns error for invalid token', async () => {
+  test('❌ 403: returns error for invalid token in Authorization', async () => {
     const res = await request(app)
       .get('/api/protected')
-      .set('Authorization', 'Bearer this.is.not.a.real.token');
+      .set('Authorization', 'Bearer invalid.token.here');
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body.msg).toBe('Invalid or expired token.');
+  });
+
+  test('❌ 403: returns error for invalid token in Cookie', async () => {
+    const res = await request(app)
+      .get('/api/protected')
+      .set('Cookie', ['token=invalid.token.here']);
 
     expect(res.statusCode).toBe(403);
     expect(res.body.msg).toBe('Invalid or expired token.');
   });
 });
 
-describe('POST /api/logout', () => {
+describe('DELETE /api/logout', () => {
   test('200: logs out the user (client should delete token)', async () => {
-    const res = await request(app).post('/api/logout');
+    const res = await request(app).delete('/api/logout');
     expect(res.statusCode).toBe(200);
-    expect(res.body.msg).toBe('Logout successful.');
+    expect(res.body.msg).toBe('Logout successful');
   });
 });
 
-describe('JWT token after logout', () => {
+describe('JWT behavior after login and logout', () => {
   let token;
 
   beforeEach(async () => {
@@ -241,14 +269,49 @@ describe('JWT token after logout', () => {
     token = res.body.token;
   });
 
-  test('403: should not allow access to protected route after token is removed (client-side)', async () => {
-    const firstRes = await request(app)
+  test('200: access protected route with valid token', async () => {
+    const res = await request(app)
       .get('/api/protected')
       .set('Authorization', `Bearer ${token}`);
-    expect(firstRes.statusCode).toBe(200);
 
+    expect(res.statusCode).toBe(200);
+    expect(res.body.email).toBe('logout@example.com');
+  });
+
+  test('401: access protected route without token', async () => {
     const res = await request(app).get('/api/protected');
     expect(res.statusCode).toBe(401);
     expect(res.body.msg).toBe('Access denied. No token provided.');
+  });
+
+  test('403: access protected route with invalid token', async () => {
+    const res = await request(app)
+      .get('/api/protected')
+      .set('Authorization', `Bearer not.a.valid.token`);
+    expect(res.statusCode).toBe(403);
+    expect(res.body.msg).toBe('Invalid or expired token.');
+  });
+
+  test('token remains technically valid after logout (client must delete it)', async () => {
+    // 1. Confirm access works with valid token
+    const beforeLogout = await request(app)
+      .get('/api/protected')
+      .set('Authorization', `Bearer ${token}`);
+    expect(beforeLogout.statusCode).toBe(200);
+
+    // 2. Perform logout (no token invalidation on server)
+    const logout = await request(app)
+      .delete('/api/logout')
+      .set('Authorization', `Bearer ${token}`);
+    expect(logout.statusCode).toBe(200);
+    expect(logout.body.msg).toBe('Logout successful');
+
+    // 3. Try the same token again — still works unless server blacklists
+    const afterLogout = await request(app)
+      .get('/api/protected')
+      .set('Authorization', `Bearer ${token}`);
+
+    // ⚠️ This will be 200 unless your server tracks invalid tokens
+    expect(afterLogout.statusCode).toBe(200);
   });
 });
