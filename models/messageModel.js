@@ -37,9 +37,14 @@ const createMessage = async ({
 const getInboxMessages = async (userId) => {
   const result = await db.query(
     `
-    SELECT * FROM messages
-    WHERE receiver_id = $1
-    ORDER BY sent_date DESC
+    SELECT m.*, 
+           s.name AS sender_name,
+           r.name AS receiver_name
+    FROM messages m
+    JOIN users s ON m.sender_id = s.id
+    JOIN users r ON m.receiver_id = r.id
+    WHERE m.receiver_id = $1
+    ORDER BY m.sent_date DESC;
     `,
     [userId]
   );
@@ -49,17 +54,48 @@ const getInboxMessages = async (userId) => {
 const getSentMessages = async (userId) => {
   const result = await db.query(
     `
-    SELECT * FROM messages
-    WHERE sender_id = $1
-    ORDER BY sent_date DESC
+    SELECT m.*, 
+           s.name AS sender_name,
+           r.name AS receiver_name
+    FROM messages m
+    JOIN users s ON m.sender_id = s.id
+    JOIN users r ON m.receiver_id = r.id
+    WHERE m.sender_id = $1
+    ORDER BY m.sent_date DESC;
     `,
     [userId]
   );
   return result.rows;
 };
 
+const getMessageById = async (id, userId) => {
+  const result = await db.query(
+    `
+    SELECT m.*, 
+           s.name AS sender_name,
+           r.name AS receiver_name
+    FROM messages m
+    JOIN users s ON m.sender_id = s.id
+    JOIN users r ON m.receiver_id = r.id
+    WHERE m.id = $1 AND (m.sender_id = $2 OR m.receiver_id = $2)
+    `,
+    [id, userId]
+  );
+  return result.rows[0];
+};
+
+const markMessageAsRead = async (id) => {
+  const result = await db.query(
+    `UPDATE messages SET is_read = true WHERE id = $1 RETURNING *;`,
+    [id]
+  );
+  return result.rows[0];
+};
+
 module.exports = {
   createMessage,
   getInboxMessages,
-  getSentMessages
+  getSentMessages,
+  markMessageAsRead,
+  getMessageById
 };

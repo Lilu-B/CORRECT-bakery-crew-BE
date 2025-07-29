@@ -58,6 +58,8 @@ describe('POST /api/events - Creating an event', () => {
         shift: '1st'
       });
 
+      console.log(res.body); // 👈 ВСТАВЬ СЮДА
+
     expect(res.statusCode).toBe(201);
     expect(res.body.event).toMatchObject({
       title: 'Team Meeting',

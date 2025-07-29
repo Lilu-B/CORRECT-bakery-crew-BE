@@ -7,13 +7,15 @@ const { handleApproveUser,
       handleGetPendingUsers
  } = require('../controllers/adminController');
 
+router.use(verifyToken);
+
 // PATCH /api/admin/users/:id/approve
-router.patch('/users/:id/approve', verifyToken, handleApproveUser);
+router.patch('/users/:id/approve', handleApproveUser);
 // PATCH /api/admin/users/:id/assign-manager
-router.patch('/users/:id/assign-manager', verifyToken, handleAssignManager);
+router.patch('/users/:id/assign-manager', handleAssignManager);
 // PATCH /api/admin/users/:id/revoke-manager
-router.patch('/users/:id/revoke-manager', verifyToken, handleRevokeManager);
+router.patch('/users/:id/revoke-manager', handleRevokeManager);
 // GET /api/admin/users/pending
-router.get('/users/pending', verifyToken, handleGetPendingUsers);
+router.get('/users/pending', handleGetPendingUsers);
 
 module.exports = router;

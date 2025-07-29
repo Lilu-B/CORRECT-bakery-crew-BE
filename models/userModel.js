@@ -11,6 +11,16 @@ const createUser = async ({ name, email, password, phone, shift, managerId }) =>
     );
     return result.rows[0];
   };
+
+  const getAllUsers = async () => {
+    const result = await db.query(`
+      SELECT id, name, role, shift, manager_id
+      FROM users
+      ORDER BY name
+    `);
+
+    return result.rows;
+  };
   
   const findUserByEmail = async (email) => {
     const result = await db.query(
@@ -57,6 +67,7 @@ const createUser = async ({ name, email, password, phone, shift, managerId }) =>
   
   module.exports = {
     createUser,
+    getAllUsers,
     findUserByEmail,
     deleteUser
   };

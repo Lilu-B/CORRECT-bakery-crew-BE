@@ -1,5 +1,4 @@
 const express = require('express');
-const { body } = require('express-validator');
 const router = express.Router();
 
 const {
@@ -14,41 +13,30 @@ const {
 
 const verifyToken = require('../middleware/authMiddleware');
 const validateRequest = require('../middleware/validationMiddleware');
+const {
+  createDonationSchema,
+  confirmPaymentSchema
+} = require('../validators/donationSchemas');
+
+router.use(verifyToken);
 
 // POST /api/donations 
-router.post(
-  '/',
-  verifyToken,
-  body('title').notEmpty().withMessage('Title is required'),
-  body('description').notEmpty().withMessage('Description is required'),
-  body('deadline').optional().isISO8601().withMessage('Invalid date'),
-  validateRequest,
-  handleCreateDonation
-);
+router.post('/', validateRequest(createDonationSchema), handleCreateDonation);
 
 // GET /api/donations/active 
-router.get('/active', verifyToken, handleGetActiveDonations);
+router.get('/active', handleGetActiveDonations);
 
 // GET /api/donations 
-router.get('/', verifyToken, handleGetAllDonations);
-router.get('/:donationId', verifyToken, handleGetDonationById);
+router.get('/', handleGetAllDonations);
+router.get('/:donationId', handleGetDonationById);
 
 // POST /api/donations/:donationId/confirm-payment 
-router.post(
-  '/:donationId/confirm-payment',
-  verifyToken,
-  body('amount')
-    .exists({ checkNull: true }).withMessage('Amount is required')
-    .bail()
-    .isNumeric().withMessage('Amount must be a number'),
-  validateRequest,
-  handleDonationPayment
-);
+router.post('/:donationId/confirm-payment', validateRequest(confirmPaymentSchema), handleDonationPayment);
 
 // GET /api/donations/:donationId/applicants 
-router.get('/:donationId/applicants', verifyToken, handleGetDonationApplicants);
+router.get('/:donationId/applicants', handleGetDonationApplicants);
 
 // DELETE /api/donations/:donationId
-router.delete('/:donationId', verifyToken, handleDeleteDonation);
+router.delete('/:donationId', handleDeleteDonation);
 
 module.exports = router;

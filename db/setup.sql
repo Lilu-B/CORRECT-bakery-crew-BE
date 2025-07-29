@@ -34,7 +34,8 @@ CREATE TABLE messages (
   is_read BOOLEAN DEFAULT FALSE,
   message_type message_type NOT NULL,
   related_entity_id INTEGER,
-  related_entity_type related_entity_type
+  related_entity_type related_entity_type,
+  parent_message_id INTEGER REFERENCES messages(id) ON DELETE CASCADE
 );
 
   CREATE TABLE events (

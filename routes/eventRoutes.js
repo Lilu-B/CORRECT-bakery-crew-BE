@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const Joi = require('joi');
 const {
   handleCreateEvent,
   handleGetSingleEvent,
@@ -9,23 +10,14 @@ const {
   handleCancelApplication,
   handleGetEventApplicants
 } = require('../controllers/eventController');
-const { body } = require('express-validator');
+
 const verifyToken = require('../middleware/authMiddleware');
 const validateRequest = require('../middleware/validationMiddleware');
+const eventSchema = require('../validators/eventSchema');
 
 router.use(verifyToken);
 
-router.post(
-  '/',
-  verifyToken, 
-  [
-    body('title').notEmpty().withMessage('Title is required'),
-    body('date').isISO8601().withMessage('Valid ISO date required'),
-    body('shift').isIn(['1st', '2nd', 'night']).withMessage('Invalid shift')
-  ],
-  validateRequest, 
-  handleCreateEvent
-);
+router.post('/', validateRequest(eventSchema), handleCreateEvent);
 
 router.get('/', handleGetAllEvents);
 

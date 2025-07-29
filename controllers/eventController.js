@@ -1,14 +1,10 @@
 const db = require('../db/connection');
-const { validationResult } = require('express-validator');
 
 const handleCreateEvent = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   const { title, description, date, shift } = req.body;
   const { id: userId, role, shift: userShift } = req.user;
 
-  // 🔒 Менеджеры могут создавать ивенты только для своей смены
   if (role === 'manager' && shift !== userShift) {
     return res.status(403).json({ msg: 'Managers can only create events for their own shift' });
   }
@@ -35,7 +31,6 @@ const handleGetSingleEvent = async (req, res) => {
     let result;
 
     if (role === 'user') {
-      // 👤 Для пользователей — добавляем applied
       result = await db.query(
         `SELECT e.*, u.name AS creator_name,
                 EXISTS (
@@ -48,7 +43,6 @@ const handleGetSingleEvent = async (req, res) => {
         [userId, eventId]
       );
     } else {
-      // 👥 Для менеджеров и разработчиков — без поля applied
       result = await db.query(
         `SELECT e.*, u.name AS creator_name
          FROM events e

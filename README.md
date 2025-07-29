@@ -40,17 +40,23 @@ npm test
 
 #### `.env.development`
 
-```env
+```.env
 DATABASE_URL=postgresql://liliia:2192@localhost:5432/bakery_crew
 PORT=3001
 JWT_SECRET=super_secret_token_key
 ```
-
 #### `.env.test`
 
-```env
+```.env
 DATABASE_URL=postgresql://liliia@localhost:5432/bakery_crew_test
 JWT_SECRET=super_secret_token_key
+```
+#### `.env.production (used on server)`
+
+```.env
+DATABASE_URL=postgresql://USERNAME:PASSWORD@localhost:5432/production_db
+PORT=80
+JWT_SECRET=your_production_secret
 ```
 
 ### Database Setup
@@ -116,7 +122,7 @@ NODE_ENV=test jest --runInBand --detectOpenHandles
 |--------|------------------|-------------------------|
 | POST   | /api/register    | Register a new user     |
 | POST   | /api/login       | Log in an approved user |
-| POST   | /api/logout      | Log out (stateless)     |
+| DELETE | /api/logout      | Log out (stateless)     |
 
 ### Protected Routes (JWT required)
 
@@ -256,8 +262,8 @@ SELECT * FROM users;
 
 ## Role-Based Access Summary
 
-| Role      | Can Approve Users | Can Delete Users        | Can Promote/Demote | JWT Access | Apply to Events | Manage Events | Manage Donations | Messages |
-|-----------|-------------------|-------------------------|--------------------|-------------|------------------|----------------|------------------|----------|
+| Role      | Can Approve Users  | Can Delete Users        | Can Promote/Demote  | JWT Access   | Apply to Events  | Manage Events   | Manage Donations  | Messages  |
+|-----------|--------------------|-------------------------|---------------------|--------------|------------------|-----------------|-------------------|-----------|
 | Developer | ✅                 | All users               | ✅                  | ✅           | ❌               | ✅              | ✅                | ❌        |
 | Manager   | ✅                 | Users in their shift    | ❌                  | ✅           | ❌               | ✅              | ✅                | ✅        |
 | User      | ❌                 | Only self               | ❌                  | ✅           | ✅ (own shift)   | ❌              | ✅                | ✅ (to manager) |

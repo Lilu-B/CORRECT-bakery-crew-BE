@@ -1,5 +1,4 @@
 const db = require('../db/connection');
-const { validationResult } = require('express-validator');
 const {
   createDonation,
   getActiveDonations,
@@ -19,8 +18,6 @@ const expireOldDonations = async () => {
 };
 
 const handleCreateDonation = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   if (req.user.role !== 'manager' && req.user.role !== 'developer') {
     return res.status(403).json({ msg: 'Only managers or admins can create donations' });

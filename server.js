@@ -1,8 +1,11 @@
+// require('dotenv').config({
+//   path:
+//     process.env.NODE_ENV === 'test'
+//       ? '.env.test'
+//       : '.env.development'
+// });
 require('dotenv').config({
-  path:
-    process.env.NODE_ENV === 'test'
-      ? '.env.test'
-      : '.env.development'
+  path: `.env.${process.env.NODE_ENV || 'development'}`
 });
 
 const app = require('./app');

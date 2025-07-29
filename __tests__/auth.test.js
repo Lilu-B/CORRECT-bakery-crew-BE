@@ -155,7 +155,7 @@ describe('POST /api/login', () => {
     expect(res.statusCode).toBe(400);
     expect(res.body.errors).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ msg: 'Valid email is required' }),
+        expect.objectContaining({ msg: 'Email is required' }),
         expect.objectContaining({ msg: 'Password is required' })
       ])
     );
@@ -244,8 +244,26 @@ describe('GET /api/protected', () => {
 });
 
 describe('DELETE /api/logout', () => {
+  beforeEach(async () => {
+    await db.query('DELETE FROM users;');
+    const hashedPassword = await bcrypt.hash('testpass', 10);
+    await db.query(`
+      INSERT INTO users (name, email, password, role, is_approved)
+      VALUES ('Approved User', 'approved@example.com', $1, 'user', true);
+    `, [hashedPassword]);
+  });
+
   test('200: logs out the user (client should delete token)', async () => {
-    const res = await request(app).delete('/api/logout');
+    const loginRes = await request(app)
+      .post('/api/login')
+      .send({ email: 'approved@example.com', password: 'testpass' });
+
+    const token = loginRes.body.token;
+
+    const res = await request(app)
+      .delete('/api/logout')
+      .set('Authorization', `Bearer ${token}`);
+
     expect(res.statusCode).toBe(200);
     expect(res.body.msg).toBe('Logout successful');
   });
