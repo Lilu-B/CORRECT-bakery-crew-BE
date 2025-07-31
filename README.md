@@ -1,5 +1,8 @@
 # 📦 Bakery Crew Backend
 
+This project is fully deployed and available for testing online:
+👉 [Live Demo](https://bakeryhub.app.freepixel.dev)
+
 This is the backend server for the **Bakery Crew** internal application. Built with **Node.js**, **Express**, and **PostgreSQL**, it manages user registration, authentication (via JWT), role-based access control, event participation, donation tracking, and messaging functionalities.
 
 ---
@@ -10,13 +13,13 @@ This is the backend server for the **Bakery Crew** internal application. Built w
 
 - Node.js >= 18
 - PostgreSQL
-- npm or yarn
+- npm
 
 ### Project Setup
 
 ```bash
 # Clone the repository
-git clone https://github.com/Lilu-B/bakery-crew-BE.git
+git clone https://github.com/Lilu-B/CORRECT-bakery-crew-BE
 cd bakery-crew-BE
 
 # Install dependencies
@@ -215,7 +218,7 @@ npx jest __tests__/event.test.js
 - `cors`
 - `jsonwebtoken`
 - `bcrypt`
-- `express-validator`
+- `joi`
 
 ### Development
 
@@ -313,4 +316,7 @@ bakery-crew-BE/
 ├── app.js                 # App definition
 └── README.md              # This file
 ```
+---
 
+This project connects to the frontend repository:  
+https://github.com/Lilu-B/CORRECT-bakery-crew-FE
